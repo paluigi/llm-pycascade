@@ -1,0 +1,63 @@
+# config.example.toml — full example configuration for llm-pycascade
+#
+# Copy this file to ~/.config/llm-pycascade/config.toml (or set LLM_PYCASCADE_CONFIG)
+# and fill in your API keys via environment variables or keyring.
+
+# ── Providers ──────────────────────────────────────────────────────────
+
+[providers.openai]
+type = "openai"
+api_key_env = "OPENAI_API_KEY"
+# base_url = "https://api.openai.com/v1"  # default; override for compatible APIs
+
+[providers.anthropic]
+type = "anthropic"
+api_key_env = "ANTHROPIC_API_KEY"
+# base_url = "https://api.anthropic.com"   # default
+
+[providers.gemini]
+type = "gemini"
+api_key_env = "GEMINI_API_KEY"
+# base_url = "https://generativelanguage.googleapis.com"  # default
+
+[providers.ollama]
+type = "ollama"
+# No API key needed for local Ollama
+# base_url = "http://localhost:11434"       # default
+
+# ── Cascades ────────────────────────────────────────────────────────────
+# Each cascade defines an ordered list of provider/model entries.
+# Entries are tried in order; on failure the next entry is attempted.
+
+[cascades.primary]
+entries = [
+    { provider = "openai",    model = "gpt-4o" },
+    { provider = "anthropic", model = "claude-sonnet-4-20250514" },
+    { provider = "gemini",    model = "gemini-2.0-flash" },
+    { provider = "ollama",    model = "llama3.1" },
+]
+
+[cascades.fast]
+entries = [
+    { provider = "anthropic", model = "claude-haiku-4-20250507" },
+    { provider = "openai",    model = "gpt-4o-mini" },
+    { provider = "ollama",    model = "mistral" },
+]
+
+[cascades.cheap]
+entries = [
+    { provider = "ollama",    model = "llama3.1" },
+    { provider = "openai",    model = "gpt-4o-mini" },
+]
+
+# ── Database ───────────────────────────────────────────────────────────
+# SQLite database for attempt logging and cooldown tracking.
+
+[database]
+path = "~/.local/share/llm-pycascade/db.sqlite"
+
+# ── Failure Persistence ────────────────────────────────────────────────
+# Directory where failed conversations are saved as JSON.
+
+[failure_persistence]
+dir = "~/.local/share/llm-pycascade/failed_prompts"
