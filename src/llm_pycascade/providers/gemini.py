@@ -168,7 +168,7 @@ class GeminiProvider(LlmProvider):
                     fc = part["functionCall"]
                     content_blocks.append(
                         ContentBlock.make_tool_call(
-                            id=fc.get("name", "unknown"),
+                            call_id=fc.get("name", "unknown"),
                             name=fc.get("name", "unknown"),
                             arguments=json.dumps(fc.get("args", {})),
                         )
