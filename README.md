@@ -206,12 +206,12 @@ export LLM_PYCASCADE_CONFIG=/path/to/custom/config.toml
 
 | Failure # | Cooldown Duration | Capped At |
 |-----------|-------------------|-----------|
-| 1st | 30s | — |
-| 2nd | 60s | — |
-| 3rd | 120s | — |
-| 4th | 240s | — |
-| 5th | 480s | — |
-| 6th+ | 960s+ | 3600s (1h) |
+| 1st | 60s | — |
+| 2nd | 120s | — |
+| 3rd | 240s | — |
+| 4th | 480s | — |
+| 5th | 960s | — |
+| 6th+ | 1920s+ | 3600s (1h) |
 
 **Special cases:**
 

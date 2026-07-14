@@ -1,0 +1,105 @@
+site_name: llm-pycascade
+site_url: https://llm-pycascade.readthedocs.io/
+site_description: Resilient cascading LLM inference with failover, circuit breaking, and retry cooldowns.
+site_author: Luigi
+repo_url: https://github.com/paluigi/llm-pycascade
+repo_name: paluigi/llm-pycascade
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Overview: index.md
+  - Installation: installation.md
+  - Quickstart: quickstart.md
+  - Configuration: configuration.md
+  - Concepts:
+      - How it works: concepts.md
+      - Providers: providers.md
+      - Tools & function calling: tools.md
+      - Secrets & keyring: secrets.md
+      - Error handling: error-handling.md
+  - API Reference:
+      - cascade: reference/cascade.md
+      - config: reference/config.md
+      - models: reference/models.md
+      - providers: reference/providers.md
+      - error: reference/error.md
+      - db: reference/db.md
+      - persistence: reference/persistence.md
+      - secrets: reference/secrets.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path:
+        - docs
+        - .
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+            heading_level: 2
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/paluigi/llm-pycascade
