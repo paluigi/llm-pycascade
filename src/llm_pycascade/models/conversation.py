@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    from llm_pycascade.models.tool import ToolDefinition
+from llm_pycascade.models.tool import (
+    ToolDefinition,  # noqa: TC001 - needed by Pydantic at runtime
+)
 
 
 class MessageRole(str, Enum):

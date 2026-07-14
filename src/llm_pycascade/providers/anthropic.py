@@ -163,7 +163,7 @@ class AnthropicProvider(LlmProvider):
                 elif block.get("type") == "tool_use":
                     content_blocks.append(
                         ContentBlock.make_tool_call(
-                            id=block["id"],
+                            call_id=block["id"],
                             name=block["name"],
                             arguments=json.dumps(block.get("input", {})),
                         )
