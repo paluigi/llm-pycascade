@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 # Python ≥ 3.11 has tomllib in the stdlib; fall back to tomli on older versions.
 if os.sys.version_info >= (3, 11):
@@ -35,12 +35,18 @@ class ProviderConfig(BaseModel):
         type: The provider type (openai, anthropic, gemini, ollama).
         api_key_service: Service name to look up in the system keyring.
         api_key_env: Environment variable name to read the API key from.
+        api_key: The API key field — its meaning depends on ``api_key_literal``.
+        api_key_literal: If ``True``, ``api_key`` holds the actual API key
+            value; if ``False`` (default), ``api_key`` holds the name of the
+            environment variable that contains the key.
         base_url: Override the default API base URL.
     """
 
     type: ProviderType
     api_key_service: str | None = Field(default=None, exclude_none=True)
     api_key_env: str | None = Field(default=None, exclude_none=True)
+    api_key: SecretStr | None = Field(default=None, exclude_none=True)
+    api_key_literal: bool = Field(default=False)
     base_url: str | None = Field(default=None, exclude_none=True)
 
 
@@ -141,6 +147,77 @@ def default_config_path() -> Path:
     return xdg
 
 
+def config_from_dict(data: dict[str, Any]) -> AppConfig:
+    """Build an :class:`AppConfig` from a plain dictionary.
+
+    The dictionary uses the same schema as the parsed TOML configuration
+    file, so any mapping that ``tomllib`` produces from a valid
+    ``config.toml`` is accepted here.  This enables configuring the
+    cascade entirely in code — useful on stateless machines (serverless
+    functions, containers) where writing a TOML file is not possible or
+    undesirable.
+
+    Args:
+        data: Configuration dictionary with optional ``providers``,
+              ``cascades``, ``database``, and ``failure_persistence``
+              sections.  Missing sections fall back to defaults, exactly
+              like an incomplete TOML file.
+
+    Returns:
+        A fully-validated :class:`AppConfig` instance.
+
+    Raises:
+        pydantic.ValidationError: If any section is malformed.
+
+    Examples:
+        >>> config = config_from_dict({
+        ...     "providers": {
+        ...         "openai": {
+        ...             "type": "openai",
+        ...             "api_key_env": "OPENAI_API_KEY",
+        ...         },
+        ...         "ollama": {"type": "ollama"},
+        ...     },
+        ...     "cascades": {
+        ...         "primary": {
+        ...             "entries": [
+        ...                 {"provider": "openai", "model": "gpt-4o"},
+        ...                 {"provider": "ollama", "model": "llama3.1"},
+        ...             ]
+        ...         }
+        ...     },
+        ... })
+    """
+    # Parse the [providers] section
+    providers: dict[str, ProviderConfig] = {}
+    for name, pcfg in data.get("providers", {}).items():
+        providers[name] = ProviderConfig(**pcfg)
+
+    # Parse the [cascades] section
+    cascades: dict[str, CascadeConfig] = {}
+    for cascade_name, ccfg in data.get("cascades", {}).items():
+        entries_raw = ccfg.get("entries", [])
+        entries = [CascadeEntry(**e) for e in entries_raw]
+        cascades[cascade_name] = CascadeConfig(entries=entries)
+
+    # Parse optional [database] and [failure_persistence] sections
+    database = (
+        DatabaseConfig(**data["database"]) if "database" in data else DatabaseConfig()
+    )
+    failure = (
+        FailureConfig(**data["failure_persistence"])
+        if "failure_persistence" in data
+        else FailureConfig()
+    )
+
+    return AppConfig(
+        providers=providers,
+        cascades=cascades,
+        database=database,
+        failure_persistence=failure,
+    )
+
+
 def load_config(path: str | Path | None = None) -> AppConfig:
     """Load and parse the application configuration from a TOML file.
 
@@ -163,31 +240,4 @@ def load_config(path: str | Path | None = None) -> AppConfig:
     with open(path, "rb") as f:
         raw: dict[str, Any] = tomllib.load(f)
 
-    # Parse the [providers] section
-    providers: dict[str, ProviderConfig] = {}
-    for name, pcfg in raw.get("providers", {}).items():
-        providers[name] = ProviderConfig(**pcfg)
-
-    # Parse the [cascades] section
-    cascades: dict[str, CascadeConfig] = {}
-    for cascade_name, ccfg in raw.get("cascades", {}).items():
-        entries_raw = ccfg.get("entries", [])
-        entries = [CascadeEntry(**e) for e in entries_raw]
-        cascades[cascade_name] = CascadeConfig(entries=entries)
-
-    # Parse optional [database] and [failure_persistence] sections
-    database = (
-        DatabaseConfig(**raw["database"]) if "database" in raw else DatabaseConfig()
-    )
-    failure = (
-        FailureConfig(**raw["failure_persistence"])
-        if "failure_persistence" in raw
-        else FailureConfig()
-    )
-
-    return AppConfig(
-        providers=providers,
-        cascades=cascades,
-        database=database,
-        failure_persistence=failure,
-    )
+    return config_from_dict(raw)
