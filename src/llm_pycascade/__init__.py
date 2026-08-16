@@ -10,6 +10,7 @@ from llm_pycascade.config import (
     FailureConfig,
     ProviderConfig,
     ProviderType,
+    config_from_dict,
     load_config,
 )
 from llm_pycascade.db import init_db
@@ -32,6 +33,7 @@ __all__ = [
     "FailureConfig",
     "ProviderConfig",
     "ProviderType",
+    "config_from_dict",
     "load_config",
     "init_db",
     "CascadeError",

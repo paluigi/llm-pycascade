@@ -70,22 +70,44 @@ def build_provider(
     from llm_pycascade.secrets import resolve_api_key
 
     base_url = provider_config.base_url
-    api_key_env = provider_config.api_key_env or f"{provider_name.upper()}_API_KEY"
+
+    # Inline key takes priority when explicitly marked as a literal value.
+    inline_key: str | None = None
+    if provider_config.api_key_literal and provider_config.api_key is not None:
+        inline_key = provider_config.api_key.get_secret_value()
+
+    # Resolve the environment-variable name: explicit api_key_env wins,
+    # then a non-literal api_key (interpreted as an env-var name),
+    # then the conventional <PROVIDER>_API_KEY default.
+    secret = provider_config.api_key
+    env_from_api_key = (
+        secret.get_secret_value()
+        if secret is not None and not provider_config.api_key_literal
+        else None
+    )
+    api_key_env = (
+        provider_config.api_key_env
+        or env_from_api_key
+        or f"{provider_name.upper()}_API_KEY"
+    )
     api_key_service = provider_config.api_key_service or provider_name
 
     ptype = provider_config.type
 
+    def _resolve_key() -> str:
+        if inline_key is not None:
+            logger.debug("Using inline API key for %r", provider_name)
+            return inline_key
+        return resolve_api_key(api_key_service, api_key_env)
+
     if ptype == ProviderType.OPENAI:
-        api_key = resolve_api_key(api_key_service, api_key_env)
-        return OpenAIProvider(api_key=api_key, model=model, base_url=base_url)
+        return OpenAIProvider(api_key=_resolve_key(), model=model, base_url=base_url)
 
     if ptype == ProviderType.ANTHROPIC:
-        api_key = resolve_api_key(api_key_service, api_key_env)
-        return AnthropicProvider(api_key=api_key, model=model, base_url=base_url)
+        return AnthropicProvider(api_key=_resolve_key(), model=model, base_url=base_url)
 
     if ptype == ProviderType.GEMINI:
-        api_key = resolve_api_key(api_key_service, api_key_env)
-        return GeminiProvider(api_key=api_key, model=model, base_url=base_url)
+        return GeminiProvider(api_key=_resolve_key(), model=model, base_url=base_url)
 
     if ptype == ProviderType.OLLAMA:
         return OllamaProvider(model=model, base_url=base_url)
@@ -207,9 +229,11 @@ async def run_cascade(
             errors.append(
                 (
                     provider_model_key,
-                    exc
-                    if isinstance(exc, ProviderError)
-                    else ProviderError.other(str(exc)),
+                    (
+                        exc
+                        if isinstance(exc, ProviderError)
+                        else ProviderError.other(str(exc))
+                    ),
                 )
             )
             continue
