@@ -1,19 +1,60 @@
 # Secrets & keyring
 
 `llm-pycascade` resolves API keys through a layered lookup so you can store
-secrets either in environment variables or, optionally, in the OS keyring.
+secrets in the configuration itself, in environment variables, or, optionally,
+in the OS keyring.
 
 ## Resolution order
 
 When a provider is built, [`resolve_api_key`](reference/secrets.md) checks
 sources in this order:
 
-1. **System keyring** — if the `keyring` package is installed *and* a key
+1. **Inline key** — if `api_key_literal = true` and `api_key` is set, the
+   `api_key` value is used directly (stored as a `SecretStr`, masked in
+   repr/str) and no further lookup happens.
+2. **System keyring** — if the `keyring` package is installed *and* a key
    exists for the service.
-2. **Environment variable** — the variable named by `api_key_env`.
+3. **Environment variable** — the variable named by `api_key_env` (or by a
+   non-literal `api_key`, or `<PROVIDER>_API_KEY` as the default).
 
-If neither yields a key, a `ProviderError` (missing API key variant) is raised
-and the cascade moves to the next entry.
+If none of these yields a key, a `ProviderError` (missing API key variant)
+is raised and the cascade moves to the next entry.
+
+## Inline keys in the configuration
+
+Set `api_key_literal = true` to embed the actual key in the config —
+convenient for [dict-based configuration](configuration.md#dict-based-configuration)
+on stateless machines, or when a secrets manager injects the key value at
+runtime:
+
+```python
+from llm_pycascade import config_from_dict
+
+config = config_from_dict({
+    "providers": {
+        "openai": {
+            "type": "openai",
+            "api_key": "sk-...",       # the key itself
+            "api_key_literal": True,
+        },
+    },
+    ...
+})
+```
+
+The value is stored as a pydantic `SecretStr`: it is automatically masked
+(`**********`) in `repr()`/`str()` of the config, so accidental logging of
+the config object never leaks the key.
+
+With the default `api_key_literal = false`, the `api_key` field instead
+holds the *name* of the environment variable that contains the key:
+
+```python
+"openai": {
+    "type": "openai",
+    "api_key": "MY_OPENAI_KEY",   # env var name — same as api_key_env
+},
+```
 
 ## Using environment variables
 

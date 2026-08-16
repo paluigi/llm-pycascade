@@ -72,7 +72,34 @@ pip install llm-pycascade[keyring]
 
 ## Configuration
 
-Create a TOML config file (defaults to `~/.config/llm-pycascade/config.toml`):
+`llm-pycascade` can be configured from a TOML file (defaults to
+`~/.config/llm-pycascade/config.toml`) or directly from a Python dict —
+useful on stateless machines where no config file can exist:
+
+```python
+from llm_pycascade import config_from_dict
+
+config = config_from_dict({
+    "providers": {
+        "openai": {"type": "openai", "api_key_env": "OPENAI_API_KEY"},
+        "ollama": {"type": "ollama"},
+    },
+    "cascades": {
+        "primary": {
+            "entries": [
+                {"provider": "openai", "model": "gpt-4o"},
+                {"provider": "ollama", "model": "llama3.1"},
+            ]
+        }
+    },
+})
+```
+
+The dict uses the same schema as the TOML file (see
+[Configuration](https://llm-pycascade.readthedocs.io/configuration/)
+for all options, including inline API keys via `api_key_literal`).
+
+Equivalent TOML:
 
 ```toml
 # config.example.toml — full example configuration
@@ -189,7 +216,9 @@ export LLM_PYCASCADE_CONFIG=/path/to/custom/config.toml
 | Type | Module | Description |
 |------|--------|-------------|
 | `run_cascade()` | `cascade` | Main entry point — runs a named cascade |
-| `AppConfig` | `config` | Top-level configuration loaded from TOML |
+| `AppConfig` | `config` | Top-level configuration (from TOML file or dict) |
+| `config_from_dict()` | `config` | Build an `AppConfig` from a plain Python dict |
+| `load_config()` | `config` | Load an `AppConfig` from a TOML file |
 | `ProviderConfig` | `config` | Per-provider settings (type, API key, base URL) |
 | `CascadeConfig` | `config` | Ordered list of provider/model entries |
 | `CascadeEntry` | `config` | Single provider/model pair in a cascade |

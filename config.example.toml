@@ -9,6 +9,12 @@
 type = "openai"
 api_key_env = "OPENAI_API_KEY"
 # base_url = "https://api.openai.com/v1"  # default; override for compatible APIs
+#
+# Inline key alternative (e.g. stateless machines, secrets managers).
+# `api_key_literal = true`  → api_key holds the actual key value
+# `api_key_literal = false` (default) → api_key names an environment variable
+# api_key = "sk-..."        # use with api_key_literal = true
+# api_key = "MY_OPENAI_KEY" # use with api_key_literal = false (or omitted)
 
 [providers.anthropic]
 type = "anthropic"

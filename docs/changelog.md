@@ -6,6 +6,20 @@ page.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Dict-based configuration** — `config_from_dict()` builds an `AppConfig`
+  from a plain Python dict using the same schema as the TOML file, enabling
+  fully in-code configuration on stateless machines (serverless, containers).
+- **Inline API keys** — new per-provider `api_key` / `api_key_literal`
+  fields. With `api_key_literal = true`, `api_key` holds the actual key
+  (stored as `SecretStr`, masked in repr/logs); with the default `false`,
+  `api_key` names the environment variable holding the key. Existing
+  `api_key_env` / keyring resolution is unchanged and still takes
+  precedence ordering: inline key → keyring → env var.
+
 ## [0.1.0] - Initial release
 
 ### Added

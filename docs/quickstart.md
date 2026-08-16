@@ -30,6 +30,32 @@ entries = [
 
 See [Configuration](configuration.md) for the full schema.
 
+!!! tip "No config file? Use a dict"
+
+    On stateless machines (serverless, containers) you can skip the TOML
+    file entirely and build the config in code:
+
+    ```python
+    from llm_pycascade import config_from_dict
+
+    config = config_from_dict({
+        "providers": {
+            "openai": {"type": "openai", "api_key_env": "OPENAI_API_KEY"},
+            "ollama": {"type": "ollama"},
+        },
+        "cascades": {
+            "primary": {
+                "entries": [
+                    {"provider": "openai", "model": "gpt-4o"},
+                    {"provider": "ollama", "model": "llama3.1"},
+                ]
+            }
+        },
+    })
+    ```
+
+    See [Dict-based configuration](configuration.md#dict-based-configuration).
+
 ## 2. Set your API key
 
 ```bash

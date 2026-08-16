@@ -21,6 +21,7 @@ all while protecting each provider with exponential-backoff cooldowns.
 - **Multi-provider** — OpenAI, Anthropic, Google Gemini, and Ollama out of the box
 - **OpenAI-compatible** — works with vLLM, LiteLLM, Together AI, and any OpenAI-compatible endpoint
 - **Tool/function calling** — first-class support across all providers
+- **Dict-based configuration** — `config_from_dict()` for stateless machines where no TOML file can exist
 - **Async** — built on `httpx` and `aiosqlite` for non-blocking I/O
 - **Keyring integration** — optional `keyring` package for secure API key storage
 
