@@ -6,7 +6,7 @@ page.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.0] - 2026-08-17
 
 ### Added
 
@@ -40,4 +40,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **SQLite logging** — attempt log and cooldown tracking via `init_db()`.
 - **TOML configuration** — providers, cascades, database, and failure persistence.
 
+[0.2.0]: https://github.com/paluigi/llm-pycascade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/paluigi/llm-pycascade/releases/tag/v0.1.0
